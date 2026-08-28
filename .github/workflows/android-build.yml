@@ -29,11 +29,11 @@ jobs:
         run: chmod +x gradlew || true
 
       - name: Build APK (Debug)
-        if: inputs.build_type == "debug"
+        if: inputs.build_type == 'debug'
         run: ./gradlew assembleDebug --no-daemon
 
       - name: Build APK (Release)
-        if: inputs.build_type == "release"
+        if: inputs.build_type == 'release'
         run: ./gradlew assembleRelease --no-daemon
 
       - name: Upload APK Artifact
