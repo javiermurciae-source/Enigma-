@@ -1,6 +1,5 @@
 package com.enigma.mobile.ui
 
-import android.annotation.SuppressLint
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.compose.foundation.clickable
@@ -18,13 +17,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.lifecycle.viewmodel.compose.viewModel
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BrowserScreen(vm: BrowserViewModel = viewModel()) {
     val state by vm.state.collectAsState()
     val bottomSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    // ── Main Screen ─────────────────────────────────────────────
     Scaffold(
         topBar = {
             TopAppBar(
@@ -42,7 +40,7 @@ fun BrowserScreen(vm: BrowserViewModel = viewModel()) {
                         Icon(Icons.Default.Search, "Ir")
                     }
                     IconButton(onClick = { vm.openSheet(Sheet.Menu) }) {
-                        Icon(Icons.Default.Menu, "Menú")
+                        Icon(Icons.Default.Menu, "Menu")
                     }
                 }
             )
@@ -71,17 +69,16 @@ fun BrowserScreen(vm: BrowserViewModel = viewModel()) {
         )
     }
 
-    // ── Menu Sheet ──────────────────────────────────────────────
+    // Menu Sheet
     if (state.sheet is Sheet.Menu) {
         ModalBottomSheet(
             onDismissRequest = { vm.closeSheet() },
             sheetState = bottomSheetState,
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                Text("Menú", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+                Text("Menu", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Perfiles
                 ListItem(
                     headlineContent = { Text("Perfiles") },
                     leadingContent = { Icon(Icons.Default.Person, null) },
@@ -89,15 +86,13 @@ fun BrowserScreen(vm: BrowserViewModel = viewModel()) {
                     modifier = Modifier.clickable { vm.openSheet(Sheet.Profiles) }
                 )
 
-                // Proxies
                 ListItem(
                     headlineContent = { Text("Proxies") },
-                    leadingContent = { Icon(Icons.Default.Language, null) },
+                    leadingContent = { Icon(Icons.Default.Settings, null) },
                     supportingContent = { Text("${state.proxies.size} configurados") },
                     modifier = Modifier.clickable { vm.openSheet(Sheet.Proxies) }
                 )
 
-                // Favoritos
                 ListItem(
                     headlineContent = { Text("Favoritos") },
                     leadingContent = { Icon(Icons.Default.Star, null) },
@@ -105,7 +100,6 @@ fun BrowserScreen(vm: BrowserViewModel = viewModel()) {
                     modifier = Modifier.clickable { vm.openSheet(Sheet.Bookmarks) }
                 )
 
-                // Renovar fingerprint
                 ListItem(
                     headlineContent = { Text("Renovar Fingerprint") },
                     leadingContent = { Icon(Icons.Default.Refresh, null) },
@@ -116,10 +110,9 @@ fun BrowserScreen(vm: BrowserViewModel = viewModel()) {
                     }
                 )
 
-                // IP Info
                 state.publicIp?.let { ip ->
                     ListItem(
-                        headlineContent = { Text("IP pública") },
+                        headlineContent = { Text("IP publica") },
                         leadingContent = { Icon(Icons.Default.Info, null) },
                         supportingContent = { Text(ip) }
                     )
@@ -130,7 +123,7 @@ fun BrowserScreen(vm: BrowserViewModel = viewModel()) {
         }
     }
 
-    // ── Profiles Sheet ──────────────────────────────────────────
+    // Profiles Sheet
     if (state.sheet is Sheet.Profiles) {
         ModalBottomSheet(
             onDismissRequest = { vm.closeSheet() },
@@ -157,22 +150,23 @@ fun BrowserScreen(vm: BrowserViewModel = viewModel()) {
                         ListItem(
                             headlineContent = { Text(profile.name) },
                             supportingContent = {
-                                Text("${profile.deviceModel} · ${profile.region.uppercase()} · ${profile.userAgent.take(40)}...")
+                                Text("${profile.deviceModel} · ${profile.region.uppercase()}")
                             },
                             leadingContent = {
                                 Icon(
-                                    if (isActive) Icons.Default.CheckCircle else Icons.Default.RadioButtonUnchecked,
+                                    if (isActive) Icons.Default.CheckCircle else Icons.Default.Star,
                                     null,
                                     tint = if (isActive) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                                 )
                             },
                             trailingContent = {
                                 if (isActive) {
-                                    Icon(Icons.Default.Delete, "Eliminar",
-                                        modifier = Modifier.clickable {
-                                            vm.deleteProfile(profile.id)
-                                            vm.closeSheet()
-                                        })
+                                    IconButton(onClick = {
+                                        vm.deleteProfile(profile.id)
+                                        vm.closeSheet()
+                                    }) {
+                                        Icon(Icons.Default.Delete, "Eliminar")
+                                    }
                                 }
                             },
                             modifier = Modifier.clickable {
@@ -188,10 +182,9 @@ fun BrowserScreen(vm: BrowserViewModel = viewModel()) {
         }
     }
 
-    // ── Proxies Sheet ───────────────────────────────────────────
+    // Proxies Sheet
     if (state.sheet is Sheet.Proxies) {
         var proxyInput by remember { mutableStateOf("") }
-        var proxyType by remember { mutableStateOf("HTTP") }
 
         ModalBottomSheet(
             onDismissRequest = { vm.closeSheet() },
@@ -201,7 +194,6 @@ fun BrowserScreen(vm: BrowserViewModel = viewModel()) {
                 Text("Proxies", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Input para agregar proxy
                 OutlinedTextField(
                     value = proxyInput,
                     onValueChange = { proxyInput = it },
@@ -210,35 +202,25 @@ fun BrowserScreen(vm: BrowserViewModel = viewModel()) {
                     singleLine = true
                 )
 
-                Row(modifier = Modifier.padding(top = 8.dp)) {
-                    FilterChip(
-                        selected = proxyType == "HTTP",
-                        onClick = { proxyType = "HTTP" },
-                        label = { Text("HTTP") }
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    FilterChip(
-                        selected = proxyType == "SOCKS5",
-                        onClick = { proxyType = "SOCKS5" },
-                        label = { Text("SOCKS5") }
-                    )
-                    Spacer(modifier = Modifier.weight(1f))
-                    Button(onClick = {
+                Button(
+                    onClick = {
                         if (proxyInput.isNotBlank()) {
+                            val parts = proxyInput.split(":")
                             val proxy = com.enigma.mobile.data.ProxyConfig(
-                                name = proxyInput.split(":").take(2).joinToString(":"),
-                                host = proxyInput.split(":").first(),
-                                port = proxyInput.split(":").getOrNull(1) ?: "",
-                                type = proxyType,
-                                username = proxyInput.split(":").getOrNull(2) ?: "",
-                                password = proxyInput.split(":").drop(3).joinToString(":"),
+                                name = parts.take(2).joinToString(":"),
+                                host = parts.first(),
+                                port = parts.getOrNull(1) ?: "",
+                                type = "HTTP",
+                                username = parts.getOrNull(2) ?: "",
+                                password = parts.drop(3).joinToString(":"),
                             )
                             vm.addProxy(proxy)
                             proxyInput = ""
                         }
-                    }) {
-                        Text("Agregar")
-                    }
+                    },
+                    modifier = Modifier.padding(top = 8.dp)
+                ) {
+                    Text("Agregar")
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -262,7 +244,7 @@ fun BrowserScreen(vm: BrowserViewModel = viewModel()) {
         }
     }
 
-    // ── Bookmarks Sheet ─────────────────────────────────────────
+    // Bookmarks Sheet
     if (state.sheet is Sheet.Bookmarks) {
         var bmLabel by remember { mutableStateOf("") }
         var bmUrl by remember { mutableStateOf(state.currentUrl) }
@@ -275,7 +257,6 @@ fun BrowserScreen(vm: BrowserViewModel = viewModel()) {
                 Text("Favoritos", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Input para agregar bookmark
                 OutlinedTextField(
                     value = bmLabel,
                     onValueChange = { bmLabel = it },
@@ -329,7 +310,7 @@ fun BrowserScreen(vm: BrowserViewModel = viewModel()) {
         }
     }
 
-    // ── Settings Sheet ──────────────────────────────────────────
+    // Settings Sheet
     if (state.sheet is Sheet.Settings) {
         ModalBottomSheet(
             onDismissRequest = { vm.closeSheet() },
@@ -338,28 +319,15 @@ fun BrowserScreen(vm: BrowserViewModel = viewModel()) {
             Column(modifier = Modifier.padding(16.dp)) {
                 Text("Ajustes", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.height(16.dp))
-
                 ListItem(
                     headlineContent = { Text("Fingerprint actual") },
                     supportingContent = { Text(state.profiles.find { it.id == state.activeProfileId }?.fpId ?: "N/A") }
                 )
-
-                ListItem(
-                    headlineContent = { Text("Modelo") },
-                    supportingContent = { Text(state.profiles.find { it.id == state.activeProfileId }?.deviceModel ?: "N/A") }
-                )
-
-                ListItem(
-                    headlineContent = { Text("Región") },
-                    supportingContent = { Text(state.profiles.find { it.id == state.activeProfileId }?.region?.uppercase() ?: "N/A") }
-                )
-
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
 
-    // ── Toast ───────────────────────────────────────────────────
     state.toast?.let { msg ->
         LaunchedEffect(msg) {
             kotlinx.coroutines.delay(2000)
