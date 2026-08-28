@@ -1,6 +1,7 @@
 package com.enigma.mobile.data
 
 import kotlin.random.Random
+import java.util.UUID
 
 object IdentityFactory {
 
