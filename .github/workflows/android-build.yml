@@ -25,22 +25,24 @@ jobs:
           java-version: '17'
           distribution: temurin
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Cache Gradle
+        uses: actions/cache@v4
         with:
-          accept-android-sdk-licenses: true
-          packages: 'platforms;android-35 build-tools;35.0.0'
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew || true
 
       - name: Build APK (Debug)
         if: inputs.build_type == 'debug'
-        run: ./gradlew assembleDebug --no-daemon
+        run: ./gradlew assembleDebug --no-daemon --accept-android-sdk-licenses
 
       - name: Build APK (Release)
         if: inputs.build_type == 'release'
-        run: ./gradlew assembleRelease --no-daemon
+        run: ./gradlew assembleRelease --no-daemon --accept-android-sdk-licenses
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
