@@ -26,6 +26,7 @@ sealed class Sheet {
     data object Menu : Sheet()
     data object Profiles : Sheet()
     data object Proxies : Sheet()
+    data object Bookmarks : Sheet()
     data object Settings : Sheet()
 }
 
